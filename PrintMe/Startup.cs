@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using PrintMe.Logic;
+using PrintMe.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,12 @@ namespace PrintMe
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddSingleton(typeof(MessageStorage));
+
+            services.AddTransient<JobFactory>();
+            services.AddScoped<PrintJob>();
+            services.AddTransient<StartProcessing>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +53,9 @@ namespace PrintMe
             {
                 endpoints.MapControllers();
             });
+
+            var startProcessing = app.ApplicationServices.GetService<StartProcessing>();
+            startProcessing.Process().Wait();
         }
     }
 }
